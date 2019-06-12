@@ -268,6 +268,18 @@ public class GrouperDuoFullRefresh extends OtherJobBase {
           String duoUserId = GrouperDuoCommands.retrieveUserIdFromUsername(grouperUsername);
           if (StringUtils.isBlank(duoUserId)) {
             LOG.warn("User is not in duo: " + grouperUsername);
+            if (GrouperLoaderConfig.retrieveConfig().propertyValueBoolean("grouperDuo.provisionUsers", false)) {
+              LOG.warn("Provisioning User to DUO: " + grouperUsername);
+              GrouperDuoCommands.updateDuoUser(grouperUsername, false);
+              // Add attributer provisoning here
+              duoUserId = GrouperDuoCommands.retrieveUserIdFromUsername(grouperUsername);
+              if (StringUtils.isBlank(duoUserId)) {
+                LOG.warn("User was unable to be provisioned to duo: " + grouperUsername);
+              } else {  
+                insertCount++;
+                GrouperDuoCommands.assignUserToGroup(duoUserId, duoGroup.getId(), false);
+              }
+            }
           } else {
             insertCount++;
             GrouperDuoCommands.assignUserToGroup(duoUserId, duoGroup.getId(), false);
