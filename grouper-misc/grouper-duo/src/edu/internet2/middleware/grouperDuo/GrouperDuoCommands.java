@@ -375,15 +375,16 @@ public class GrouperDuoCommands {
     try {
     
   
-      if (StringUtils.isBlank(groupId)) {
-        throw new RuntimeException("Why is groupId blank?");
+      if (StringUtils.isBlank(username)) {
+        throw new RuntimeException("Why is username blank?");
       }
       
       //create user
-      String path = "/admin/v1/groups/" + groupId;
+      // POST /admin/v1/users/
+      String path = "/admin/v1/users";
       debugMap.put("POST", path);
       Http request = httpAdmin("POST", path);
-      request.addParam("desc", groupDescription);
+      request.addParam("username", username);
       
       signHttpAdmin(request);
       
@@ -420,9 +421,9 @@ public class GrouperDuoCommands {
 
       jsonObject = (JSONObject)jsonObject.get("response");
         
-      String groupName = jsonObject.getString("name");
+      String username = jsonObject.getString("name");
 
-      debugMap.put("groupName", groupName);
+      debugMap.put("username", username);
       
       return jsonObject;
     } catch (RuntimeException re) {
