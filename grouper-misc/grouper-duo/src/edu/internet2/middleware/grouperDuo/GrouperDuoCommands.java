@@ -357,6 +357,82 @@ public class GrouperDuoCommands {
     }
 
   }
+
+  /**
+   * @param groupId
+   * @param groupDescription
+   * @param isIncremental
+   * @return the json object
+   */
+  public static JSONObject updateDuoUser(String username, boolean isIncremental) {
+    
+    Map<String, Object> debugMap = new LinkedHashMap<String, Object>();
+
+    debugMap.put("method", "updateDuoUser");
+    debugMap.put("username", username);
+    debugMap.put("daemonType", isIncremental ? "incremental" : "full");
+    long startTime = System.nanoTime();
+    try {
+    
+  
+      if (StringUtils.isBlank(groupId)) {
+        throw new RuntimeException("Why is groupId blank?");
+      }
+      
+      //create user
+      String path = "/admin/v1/groups/" + groupId;
+      debugMap.put("POST", path);
+      Http request = httpAdmin("POST", path);
+      request.addParam("desc", groupDescription);
+      
+      signHttpAdmin(request);
+      
+      String result = executeRequestRaw(request);
+          
+      //  {
+      //    "response": {
+      //      "desc": "Group description",
+      //      "group_id": "DGXXXXXXXXXXXXXXXXXX",
+      //      "name": "Group Name",
+      //      "push_enabled": true,
+      //      "sms_enabled": true,
+      //      "status": "active",
+      //      "voice_enabled": true,
+      //      "mobile_otp_enabled": true
+      //    },
+      //    "stat": "OK"
+      //  }
+      
+      JSONObject jsonObject = (JSONObject) JSONSerializer.toJSON( result );     
+
+      if (!StringUtils.equals(jsonObject.getString("stat"), "OK")) {
+        
+        // {
+        //    "code": 40003, 
+        //    "message": "Duplicate resource", 
+        //    "stat": "FAIL"
+        // }
+        
+        debugMap.put("error", true);
+          debugMap.put("result", result);
+          throw new RuntimeException("Bad response from Duo: " + result);
+      }
+
+      jsonObject = (JSONObject)jsonObject.get("response");
+        
+      String groupName = jsonObject.getString("name");
+
+      debugMap.put("groupName", groupName);
+      
+      return jsonObject;
+    } catch (RuntimeException re) {
+      debugMap.put("exception", ExceptionUtils.getFullStackTrace(re));
+      throw re;
+    } finally {
+      GrouperDuoLog.duoLog(debugMap, startTime);
+    }
+
+  }
   
   /**
    * @param userId
