@@ -421,7 +421,7 @@ public class GrouperDuoCommands {
 
       jsonObject = (JSONObject)jsonObject.get("response");
         
-      String username = jsonObject.getString("name");
+      username = jsonObject.getString("name");
 
       debugMap.put("username", username);
       
